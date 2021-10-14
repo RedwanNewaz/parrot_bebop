@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="bebop_controller" type="bebop_controller.py" name="bebop_controller" output="screen">
+        <rosparam command="load" file="$(find bebop_controller)/config/controller_gains.yaml" />
+    </node>
+</launch>
