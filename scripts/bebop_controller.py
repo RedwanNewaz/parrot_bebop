@@ -1,8 +1,13 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 import rospy
+from geometry_msgs.msg import TransformStamped
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from geometry_msgs.msg import Twist
 from enum import Enum
 from controller import PID
+from sensor_msgs.msg import Joy
+import rospkg
+from std_msgs.msg import Empty
 
 class ControllerState(Enum):
     IDLE = 1
@@ -44,7 +49,7 @@ class ParrotBebop:
         self.ref = ref
         self.pose = pose
         self.combine_controller = (self.x_controller.calculate, self.y_controller.calculate, self.z_controller.calculate, self.yaw_controller.calculate)
-        self.cmd_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
+        self.cmd_pub = rospy.Publisher('/bebop/cmd_vel', Twist, queue_size=1)
         self.controlLoop = rospy.Timer(rospy.Duration(dt), self.calculate)
 
     def set_ref(self, target):
@@ -59,7 +64,9 @@ class ParrotBebop:
         u = [0] * 4
         if self.state == ControllerState.RUNNING:
             u = [f(self.ref[i], self.pose[i])for i, f in enumerate(self.combine_controller)]
-        print("[+ {}] publishing cmd_vel ".format(timer.current_real), u)
+	else:
+	    return
+        #print("[+ {}] publishing cmd_vel ".format(timer.current_real), u)
         self.publish_cmd_vel(u)
 
     def publish_cmd_vel(self, u):
@@ -70,7 +77,41 @@ class ParrotBebop:
         msg.angular.z = u[3]
         self.cmd_pub.publish(msg)
 
+def callback(data):
+    def get_rotation (orientation_q):
+	 
+	    #orientation_q = msg.Quaternion
+	    orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
+	    (roll, pitch, yaw) = euler_from_quaternion (orientation_list)
+	    return yaw
 
+    x_cur  = data.transform.translation.x
+    y_cur = data.transform.translation.y
+    z_cur = data.transform.translation.z
+    yaw_cur = get_rotation(data.transform.rotation)
+    pose = [x_cur, y_cur, z_cur, yaw_cur]
+    drone.update_state(pose)
+
+def joystickCallback(data):
+   
+    #print(data.buttons)
+
+    msg = Empty()
+
+    if (data.buttons[0]):
+    	drone.state = ControllerState.RUNNING
+	cur_pose = drone.pose
+	drone.set_ref(cur_pose)
+	print('Hover Mode Active', cur_pose)
+    elif data.buttons[2]:
+    	drone.state = ControllerState.IDLE
+	print('IDLE')
+    elif data.buttons[3]:	
+	print('Takeoff')
+	takeoff_pub.publish(msg)
+    elif data.buttons[1]:
+    	print('Land')
+	land_pub.publish(msg)
 
 
 
@@ -78,7 +119,16 @@ if __name__ == '__main__':
     rospy.init_node('bebop_controller', anonymous=True)
 
     pose = [0, 0, 0, 0]
-    ref = [-1, 1, 0, 0]
+    ref = [0.5, -1.3, 1, 0]
     drone = ParrotBebop(pose, ref, dt = 0.03) # 30 Hz
-    drone.state = ControllerState.RUNNING
+
+    takeoff_pub = rospy.Publisher('/bebop/takeoff', Empty, queue_size=1)
+    land_pub = rospy.Publisher('/bebop/land', Empty, queue_size=1)
+
+    rospy.Subscriber('/vicon/bebop/bebop', TransformStamped, callback)
+    rospy.Subscriber('/joy', Joy, joystickCallback)
     rospy.spin()
+
+
+
+

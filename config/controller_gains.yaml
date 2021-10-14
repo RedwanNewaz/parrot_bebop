@@ -1,19 +1,19 @@
 x_axis:
-  Kp: 0.1
-  Kd: -0.01
+  Kp: -0.25
+  Kd: -0.5
   Ki: 0.0
 
 y_axis:
-  Kp: 0.1
-  Kd: -0.01
+  Kp: 0.25
+  Kd: -0.5
   Ki: 0.0
 
 z_axis:
-  Kp: 0.1
-  Kd: -0.01
+  Kp: 1
+  Kd: -0.00
   Ki: 0.0
 
 yaw_axis:
-  Kp: 0.1
-  Kd: -0.01
+  Kp: 0.0
+  Kd: -0.00
   Ki: 0.0
