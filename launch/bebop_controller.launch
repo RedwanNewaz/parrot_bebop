@@ -2,5 +2,10 @@
     <node pkg="bebop_controller" type="bebop_controller.py" name="bebop_controller" output="screen">
         <rosparam command="load" file="$(find bebop_controller)/config/controller_gains.yaml" />
     </node>
+<<<<<<< HEAD
     <node pkg="joy" type="joy_node" name="joystic" />
 </launch>
+=======
+    <node pkg="joy" type="joy_node" name="joystick" />
+</launch>
+>>>>>>> ac23d5f734b7636338783885d13758b5ec49d00f
