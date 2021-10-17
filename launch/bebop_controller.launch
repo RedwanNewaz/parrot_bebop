@@ -2,10 +2,14 @@
     <node pkg="bebop_controller" type="bebop_controller.py" name="bebop_controller" output="screen">
         <rosparam command="load" file="$(find bebop_controller)/config/controller_gains.yaml" />
     </node>
-<<<<<<< HEAD
     <node pkg="joy" type="joy_node" name="joystic" />
+    <node pkg="bebop_controller" type="bebop_trajectory_gen_node" name="bobop_trajectory" output="screen">
+        <param name="rect_width" value="5"/>
+        <param name="rect_height" value="5"/>
+        <param name="path_theta" value="0.15" />
+        <param name="max_vel" value="1.5" />
+        <param name="max_acc" value="0.15" />
+    </node>
+    <node pkg="bebop_controller" type="bebop_viz.py" name="bobop_visualization" output="screen"/>
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find bebop_controller)/launch/bebop.rviz" />
 </launch>
-=======
-    <node pkg="joy" type="joy_node" name="joystick" />
-</launch>
->>>>>>> ac23d5f734b7636338783885d13758b5ec49d00f
