@@ -8,6 +8,7 @@ from controller import PID
 from sensor_msgs.msg import Joy
 import rospkg
 from std_msgs.msg import Empty
+from geometry_msgs.msg import Point
 
 
 class ControllerState(Enum):
@@ -80,7 +81,7 @@ class ParrotBebop:
         self.cmd_pub.publish(msg)
 
 
-def callback(data):
+def robotStateCallback(data):
     def get_rotation(orientation_q):
         # orientation_q = msg.Quaternion
         orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
@@ -115,6 +116,10 @@ def joystickCallback(data):
         print('Land')
         land_pub.publish(msg)
 
+def execute_trajectory(data):
+    drone.pose[0] = data.x
+    drone.pose[1] = data.y
+    drone.pose[2] = data.z
 
 if __name__ == '__main__':
     rospy.init_node('bebop_controller', anonymous=True)
@@ -126,6 +131,8 @@ if __name__ == '__main__':
     takeoff_pub = rospy.Publisher('/bebop/takeoff', Empty, queue_size=1)
     land_pub = rospy.Publisher('/bebop/land', Empty, queue_size=1)
 
-    rospy.Subscriber('/vicon/bebop/bebop', TransformStamped, callback)
+    rospy.Subscriber('/vicon/bebop/bebop', TransformStamped, robotStateCallback)
     rospy.Subscriber('/joy', Joy, joystickCallback)
+    # TODO uncomment the line below for trajectory following
+    # rospy.Subscriber('/bebop/trajectory', Point, execute_trajectory)
     rospy.spin()

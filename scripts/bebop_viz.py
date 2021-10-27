@@ -4,6 +4,7 @@ from visualization_msgs.msg import Marker
 from geometry_msgs.msg import Point
 from std_msgs.msg import ColorRGBA
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
+from geometry_msgs.msg import TransformStamped
 import math
 count = 0
 def getMarkerWindow(x,y,z,r,p,yaw):
@@ -61,15 +62,22 @@ def point_trajectory(x,y,z,r,p,yaw):
     return myMarker
 
 def vizCallback(data):
-    msg = getMarkerWindow(data.x, data.y, data.z, 0, 0, math.pi/4)
-    marker_pub.publish(msg)
+    # msg = getMarkerWindow(data.x, data.y, data.z, 0, 0, math.pi/4)
+    # marker_pub.publish(msg)
     traj = point_trajectory(data.x, data.y, data.z, 0, 0, 0)
     traj_pub.publish(traj)
 
+def robotStateCallback(data):
+    orientation_list = [data.transform.rotation.x, data.transform.rotation.y, data.transform.rotation.z, data.transform.rotation.w]
+    (roll, pitch, yaw) = euler_from_quaternion(orientation_list)
+    msg = getMarkerWindow(data.transform.translation.x, data.transform.translation.y, data.transform.translation.z,
+                          roll, pitch, yaw)
+    marker_pub.publish(msg)
 
 if __name__ == '__main__':
     rospy.init_node('bebop_visualization', anonymous=True)
     rospy.Subscriber('/bebop/trajectory', Point, vizCallback)
+    rospy.Subscriber('/vicon/bebop/bebop', TransformStamped, robotStateCallback)
     marker_pub = rospy.Publisher('/bebop/target', Marker, queue_size=1)
     traj_pub = rospy.Publisher('/bebop/trajectory', Marker, queue_size=1)
     rospy.spin()
