@@ -11,7 +11,8 @@
 #include <string>
 #include <vector>
 #include <deque>
-
+#include "sensor_msgs/Joy.h"
+//#define SIMULATION true
 
 using namespace std;
 using namespace Eigen;
@@ -20,41 +21,10 @@ typedef deque<tuple<double, double, double, double>> TRAJ;
 
 double width, height, theta;
 double max_vel, max_acc;
-Vector2d origin;
 TRAJ trajectory;
 ros::Publisher trajPub;
+WP path;
 
-WP sweepPath(const Vector2d& origin)
-{
-    ROS_INFO("width %lf height = %lf theta = %lf ", width, height, theta );
-    Vector2d A(origin), B, C;
-    vector<pair<double, double>> path;
-
-    double iterator = 0.0;
-    int count = 0;
-
-    C << width, 0;
-    B = A + C;
-
-    do
-    {
-        C = iterator * A + (1 - iterator) * B;
-        if (count % 2 == 0 )
-        {
-            path.emplace_back(make_pair(C(0), C(1)));
-            path.emplace_back(make_pair(C(0), C(1) + height ) );
-        }
-        else
-        {
-            path.emplace_back(make_pair(C(0), C(1) + height ) );
-            path.emplace_back(make_pair(C(0), C(1)));
-        }
-        iterator += theta;
-        ++count;
-    }while(iterator <=1.0);
-
-    return path;
-}
 
 
 VectorXd allocateTime(const MatrixXd &wayPs,
@@ -176,6 +146,15 @@ void trajTimerCallback(const ros::TimerEvent& event)
 
 }
 
+void joystickCallback(const sensor_msgs::Joy::ConstPtr& msg)
+{
+    if(msg->buttons[0])
+    {
+        MatrixXd pathMat = path_to_waypoint_matrix(path);
+        ROS_INFO_STREAM("path size " << path.size());
+        trajectory = path_to_trajectory(pathMat, path.size() - 1);
+    }
+}
 
 int main(int argc, char *argv[])
 {
@@ -190,13 +169,23 @@ int main(int argc, char *argv[])
     nh.getParam("max_vel", max_vel);
     nh.getParam("max_acc", max_acc);
 
-    trajPub = nh.advertise<geometry_msgs::Point>("/bebop/trajectory", 1);
+    vector<double>X, Y;
+    nh.getParam("wp_x", X);
+    nh.getParam("wp_y", Y);
+    for (int i = 0; i < X.size(); ++i) {
+        path.emplace_back(make_pair(X[i], Y[i]));
+    }
 
-    origin << 0, 0;
-    WP path = sweepPath(origin);
+#ifdef SIMULATION
     MatrixXd pathMat = path_to_waypoint_matrix(path);
     ROS_INFO_STREAM("path size " << path.size());
     trajectory = path_to_trajectory(pathMat, path.size() - 1);
+#endif
+
+    trajPub = nh.advertise<geometry_msgs::Point>("/bebop/trajectory", 1);
+
+    ros::Subscriber joy_sub = nh.subscribe("/joy", 1, joystickCallback);
+
     ros::Timer timer = nh.createTimer(ros::Duration(0.1), trajTimerCallback);
     ros::spin();
 

@@ -4,11 +4,7 @@
     </node>
     <node pkg="joy" type="joy_node" name="joystic" />
     <node pkg="bebop_controller" type="bebop_trajectory_gen_node" name="bobop_trajectory" output="screen">
-        <param name="rect_width" value="5"/>
-        <param name="rect_height" value="5"/>
-        <param name="path_theta" value="0.15" />
-        <param name="max_vel" value="1.5" />
-        <param name="max_acc" value="0.15" />
+        <rosparam command="load" file="$(find bebop_controller)/config/traj_params.yaml" />
     </node>
     <node pkg="bebop_controller" type="bebop_viz.py" name="bobop_visualization" output="screen"/>
     <node type="rviz" name="rviz" pkg="rviz" args="-d $(find bebop_controller)/launch/bebop.rviz" />

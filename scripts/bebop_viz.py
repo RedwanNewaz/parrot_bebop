@@ -62,6 +62,7 @@ def point_trajectory(x,y,z,r,p,yaw):
     return myMarker
 
 def vizCallback(data):
+    # TODO comment out two lines for simulation
     # msg = getMarkerWindow(data.x, data.y, data.z, 0, 0, math.pi/4)
     # marker_pub.publish(msg)
     traj = point_trajectory(data.x, data.y, data.z, 0, 0, 0)
