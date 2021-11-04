@@ -1,0 +1,7 @@
+<launch>
+    <node pkg="bebop_controller" type="bebop_ekf.py" name="bebop_ekf"/>
+    <node pkg="tf" type="static_transform_publisher" name="map_coordinate" args="0 0 0 0 0 0 1 map world 100" />
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true">
+        <rosparam command="load" file="$(find bebop_controller)/config/ekf_bebop.yaml" />
+    </node>
+</launch>

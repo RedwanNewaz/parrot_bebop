@@ -1,5 +1,5 @@
-max_vel: 0.5
-max_acc: 0.5
+max_vel: 0.15
+max_acc: 0.15
 
 # straight line
 wp_x: [0.907, -2.618, 0.907]
