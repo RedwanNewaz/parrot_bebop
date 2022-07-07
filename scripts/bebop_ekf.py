@@ -1,14 +1,44 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 import rospy
 import tf
+from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from geometry_msgs.msg import TransformStamped
-from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from visualization_msgs.msg import Marker
+#from geometry_msgs.msg import Point
 from std_msgs.msg import ColorRGBA
-from nav_msgs.msg import Odometry
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
 import math
 
+def robotStateCallback(data):
+    #msg = Odometry()
+    msg = PoseWithCovarianceStamped()
+    msg.header.frame_id = 'map'
+    msg.header.stamp = rospy.get_rostime()
+    #msg.child_frame_id = '/vicon/bebop/bebop'
+
+    # position
+    msg.pose.pose.position.x = data.transform.translation.x
+    msg.pose.pose.position.y = data.transform.translation.y
+    msg.pose.pose.position.z = data.transform.translation.z
+    # orientation
+    msg.pose.pose.orientation.x = data.transform.rotation.x
+    msg.pose.pose.orientation.y = data.transform.rotation.y
+    msg.pose.pose.orientation.z = data.transform.rotation.z
+    msg.pose.pose.orientation.w = data.transform.rotation.w
+    
+    pose_pub.publish(msg)
+
+    # publish baslink tf
+    msg.pose.pose.orientation.x = 0
+    msg.pose.pose.orientation.y = msg.pose.pose.orientation.z = 0
+    msg.pose.pose.orientation.w = 1
+    br = tf.TransformBroadcaster()
+    br.sendTransform((msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z),
+                    tf.transformations.quaternion_from_euler(0, 0, 0),
+                    rospy.Time.now(),
+                    "base_link",
+                    "map")
 
 def getMarkerWindow(x,y,z,r,p,yaw):
 
@@ -39,34 +69,6 @@ def getMarkerWindow(x,y,z,r,p,yaw):
 
     return myMarker
 
-def robotStateCallback(data):
-    msg = PoseWithCovarianceStamped()
-    msg.header.frame_id = 'map'
-    msg.header.stamp = rospy.get_rostime()
-
-    # position
-    msg.pose.pose.position.x = data.transform.translation.x
-    msg.pose.pose.position.y = data.transform.translation.y
-    msg.pose.pose.position.z = data.transform.translation.z
-    # orientation
-    msg.pose.pose.orientation.x = data.transform.rotation.x
-    msg.pose.pose.orientation.y = data.transform.rotation.y
-    msg.pose.pose.orientation.z = data.transform.rotation.z
-    msg.pose.pose.orientation.w = data.transform.rotation.w
-
-    pose_pub.publish(msg)
-
-    # publish baselink tf
-    msg.pose.pose.orientation.x = msg.pose.pose.orientation.y = msg.pose.pose.orientation.z = 0
-    msg.pose.pose.orientation.w = 1
-    br = tf.TransformBroadcaster()
-    br.sendTransform(msg.pose.pose.position,
-                     msg.pose.pose.orientation,
-                     rospy.Time.now(),
-                     "bebop_link",
-                     "/vicon/bebop/bebop")
-
-
 def ekf_filter(data):
     data = data.pose.pose.position
     msg = getMarkerWindow(data.x, data.y, data.z, 0, 0, math.pi/4)
@@ -74,7 +76,7 @@ def ekf_filter(data):
 
 
 if __name__ == '__main__':
-    rospy.init_node('bebop_ekf', anonymous=True)
+    rospy.init_node('bebop_visualization', anonymous=True)
     rospy.Subscriber('/vicon/bebop/bebop', TransformStamped, robotStateCallback)
     rospy.Subscriber('/odometry/filtered', Odometry, ekf_filter)
     pose_pub = rospy.Publisher('/bebop/pose', PoseWithCovarianceStamped, queue_size=10)

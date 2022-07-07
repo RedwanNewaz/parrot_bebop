@@ -134,5 +134,5 @@ if __name__ == '__main__':
     rospy.Subscriber('/vicon/bebop/bebop', TransformStamped, robotStateCallback)
     rospy.Subscriber('/joy', Joy, joystickCallback)
     # TODO uncomment the line below for trajectory following
-    # rospy.Subscriber('/bebop/trajectory', Point, execute_trajectory)
+    rospy.Subscriber('/bebop/trajectory', Point, execute_trajectory)
     rospy.spin()
