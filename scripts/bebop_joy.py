@@ -68,7 +68,7 @@ class ParrotBebopController:
         assert isinstance(x, list), 'uav state should have 4 param (x, y, z, yaw)'
         self.pose = x
         self._isPoseUpdated = True
-        print(f"[Bebop Pose] = ", x)
+        # print(f"[Bebop Pose] = ", x)
 
     def calculate(self, timer):
 
@@ -86,7 +86,7 @@ class ParrotBebopController:
     def bebop_state(self, event):
         try:
             (trans,rot) = self.listener.lookupTransform('/vicon/world', '/vicon/bebop/bebop', rospy.Time(0))
-            yaw = 0
+            yaw = rot[-1]
             self.update_state([trans[0], trans[1], trans[2], yaw])
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             pass
@@ -159,6 +159,7 @@ class VizTarget(TargetHandle):
                 self._state[0] = self._drone.pose[0]
                 self._state[1] = self._drone.pose[1]
                 self._state[2] = self._drone.pose[2]
+                self._drone.state = ControllerState.IDLE
             else:
                 print("NO VICON DATA")
 
@@ -183,7 +184,7 @@ class VizTarget(TargetHandle):
 
     def showTarget(self):
         myMarker = Marker()
-        myMarker.header.frame_id = "map"
+        myMarker.header.frame_id = "vicon/world"
         myMarker.header.seq = 1
         myMarker.header.stamp    = rospy.get_rostime()
         myMarker.ns = "bebop_target"

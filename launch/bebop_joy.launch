@@ -3,9 +3,9 @@
         <rosparam command="load" file="$(find bebop_controller)/config/controller_gains.yaml" />
     </node>
     <node pkg="joy" type="joy_node" name="joystic" />
-<!--    <node pkg="bebop_controller" type="bebop_trajectory_gen_node" name="bobop_trajectory" output="screen">-->
-<!--        <rosparam command="load" file="$(find bebop_controller)/config/traj_params.yaml" />-->
-<!--    </node>-->
-<!--    <node pkg="bebop_controller" type="bebop_viz.py" name="bobop_visualization" output="screen"/>-->
-    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find bebop_controller)/config/bebopjoy.rviz" />
+    <include file="$(find vicon_bridge)/launch/vicon_lab.launch" />
+    <include file="$(find bebop_tools)/launch/bebop_nodelet_iv.launch" />
+
+
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find bebop_controller)/config/BebopConfig.rviz" />
 </launch>
