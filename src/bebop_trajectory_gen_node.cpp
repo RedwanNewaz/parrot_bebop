@@ -12,7 +12,7 @@
 #include <vector>
 #include <deque>
 #include "sensor_msgs/Joy.h"
-//#define SIMULATION true
+#define SIMULATION true
 
 using namespace std;
 using namespace Eigen;

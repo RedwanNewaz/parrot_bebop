@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import rospy
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import Point
@@ -63,8 +63,8 @@ def point_trajectory(x,y,z,r,p,yaw):
 
 def vizCallback(data):
     # TODO comment out two lines for simulation
-    # msg = getMarkerWindow(data.x, data.y, data.z, 0, 0, math.pi/4)
-    # marker_pub.publish(msg)
+    msg = getMarkerWindow(data.x, data.y, data.z, 0, 0, math.pi/4)
+    marker_pub.publish(msg)
     traj = point_trajectory(data.x, data.y, data.z, 0, 0, 0)
     traj_pub.publish(traj)
 
